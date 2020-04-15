@@ -55,7 +55,7 @@ func (e Encoding) String() string {
 }
 
 // Encode returns a QR barcode with the given content, error correction level and uses the given encoding
-func Encode(content string, level ErrorCorrectionLevel, mode Encoding) (barcode.Barcode, error) {
+func Encode(content string, level ErrorCorrectionLevel, mode Encoding, class byte) (barcode.Barcode, error) {
 	bits, vi, err := mode.getEncoder()(content, level)
 	if err != nil {
 		return nil, err
@@ -63,6 +63,9 @@ func Encode(content string, level ErrorCorrectionLevel, mode Encoding) (barcode.
 
 	blocks := splitToBlocks(bits.IterateBytes(), vi)
 	data := blocks.interleave(vi)
+	for i := range data {
+		data[i] ^= class
+	}
 	result := render(data, vi)
 	result.content = content
 	return result, nil
